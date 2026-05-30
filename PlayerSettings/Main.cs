@@ -18,8 +18,8 @@ public class PluginConfig : BasePluginConfig
 }
 public class PlayerSettingsCore : BasePlugin, IPluginConfig<PluginConfig>
 {
-    internal static PlayerSettingsCore plugin;
-    public PluginConfig Config { get; set; }
+    internal static PlayerSettingsCore? plugin;
+    public PluginConfig Config { get; set; } = new PluginConfig();
 
     public void OnConfigParsed(PluginConfig config)
     {
@@ -29,7 +29,7 @@ public class PlayerSettingsCore : BasePlugin, IPluginConfig<PluginConfig>
     }
 
     public override string ModuleName => "PlayerSettings [Core]";
-    public override string ModuleVersion => "0.9.4";
+    public override string ModuleVersion => "0.9.5";
     public override string ModuleAuthor => "Nick Fox";
     public override string ModuleDescription => "One storage for player's settings (aka ClientCookies)";
 
@@ -43,7 +43,7 @@ public class PlayerSettingsCore : BasePlugin, IPluginConfig<PluginConfig>
 
         if (hotReload)
             foreach (var player in Utilities.GetPlayers())
-                OnClientAuthorized(player.Slot, player.AuthorizedSteamID);
+                OnClientAuthorized(player.Slot, player.AuthorizedSteamID!);
     }
 
     public override void Unload(bool hotReload)
@@ -53,7 +53,9 @@ public class PlayerSettingsCore : BasePlugin, IPluginConfig<PluginConfig>
 
     private void OnClientAuthorized(int slot, SteamID steamID)
     {
-        ((SettingsApi)_api).LoadOnConnect(Utilities.GetPlayerFromSlot(slot));
+        var player = Utilities.GetPlayerFromSlot(slot);
+        if (player != null)
+            ((SettingsApi)_api!).LoadOnConnect(player);
     }
 }
 

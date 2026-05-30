@@ -13,12 +13,12 @@ namespace PlayerSettings
 {
     internal static class Storage
     {
-        private static IAnyBase db;
-        private static string table;
+        private static IAnyBase? db;
+        private static string table = "";
 
         public static void Init()
         {
-            table = PlayerSettingsCore.plugin.Config.DatabaseParams.Table;
+            table = PlayerSettingsCore.plugin!.Config.DatabaseParams.Table;
             var is_sqlite = PlayerSettingsCore.plugin.Config.DatabaseParams.IsLocal();
             if (is_sqlite)
             {
@@ -31,10 +31,10 @@ namespace PlayerSettings
                 db.Set(AnyBaseLib.Bases.CommitMode.AutoCommit, PlayerSettingsCore.plugin.Config.DatabaseParams.Name, PlayerSettingsCore.plugin.Config.DatabaseParams.Host, PlayerSettingsCore.plugin.Config.DatabaseParams.User, PlayerSettingsCore.plugin.Config.DatabaseParams.Password);
             }
 
-            db.Init();
-            db.QueryAsync($"CREATE TABLE IF NOT EXISTS `{table}users` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `steam` VARCHAR(255) NOT NULL)", null, (_) =>
+            db!.Init();
+            db.QueryAsync($"CREATE TABLE IF NOT EXISTS `{table}users` (`id` INTEGER PRIMARY KEY AUTO_INCREMENT, `steam` VARCHAR(255) NOT NULL)", [], (_) =>
             {
-                db.QueryAsync($"CREATE TABLE IF NOT EXISTS `{table}values` (`user_id` INT, `param` VARCHAR(255) NOT NULL, `value` VARCHAR(255) NOT NULL)", null, (_) =>
+                db.QueryAsync($"CREATE TABLE IF NOT EXISTS `{table}values` (`user_id` INT, `param` VARCHAR(255) NOT NULL, `value` VARCHAR(255) NOT NULL)", [], (_) =>
                 {
                     if (!is_sqlite) Migrate.Init(db);
                 }, true);
@@ -46,7 +46,7 @@ namespace PlayerSettings
         public static void GetUserIdAsync(CCSPlayerController player, Action<int> callback)
         {
             var steamid = player.SteamID;
-            db.QueryAsync("SELECT `id` FROM `" + table + "users` WHERE `steam` = '{ARG}'", new List<string>([steamid.ToString()]), (data) =>
+            db!.QueryAsync("SELECT `id` FROM `" + table + "users` WHERE `steam` = '{ARG}'", new List<string>([steamid.ToString()]), (data) =>
             {
                 if (data.Count > 0)
                 {
@@ -60,7 +60,7 @@ namespace PlayerSettings
 
         internal static void LoadSettings(int userid, Action<List<List<string>>> action)
         {
-            db.QueryAsync("SELECT `param`, `value` FROM `" + table + "values` WHERE `user_id` = {ARG}", new List<string>([userid.ToString()]), action);
+            db!.QueryAsync("SELECT `param`, `value` FROM `" + table + "values` WHERE `user_id` = {ARG}", new List<string>([userid.ToString()]), action);
         }
 
         
@@ -78,15 +78,15 @@ namespace PlayerSettings
 
         public static void SetUserSettingValue(int userid, string param, string value)
         {
-            db.QueryAsync("SELECT `value` FROM `" + table + "values` WHERE `user_id` = {ARG} AND `param` = '{ARG}'", new List<string>([userid.ToString(), param]), (data) => SetUserSettingValuePost(userid, param, value, data.Count));
+            db!.QueryAsync("SELECT `value` FROM `" + table + "values` WHERE `user_id` = {ARG} AND `param` = '{ARG}'", new List<string>([userid.ToString(), param]), (data) => SetUserSettingValuePost(userid, param, value, data.Count));
         }
 
         private static void SetUserSettingValuePost(int userid, string param, string value, int co)
         {
             if (co == 0)
-                db.QueryAsync("INSERT INTO `" + table + "values` (`user_id`, `param`, `value`) VALUES ({ARG}, '{ARG}', '{ARG}')", new List<string>([userid.ToString(), param, value]), null, true);
+                db!.QueryAsync("INSERT INTO `" + table + "values` (`user_id`, `param`, `value`) VALUES ({ARG}, '{ARG}', '{ARG}')", new List<string>([userid.ToString(), param, value]), _ => { }, true);
             else
-                db.QueryAsync("UPDATE `" + table + "values` SET `value` = '{ARG}' WHERE `user_id` = {ARG} AND `param` = '{ARG}'", new List<string>([value, userid.ToString(), param]), null, true);
+                db!.QueryAsync("UPDATE `" + table + "values` SET `value` = '{ARG}' WHERE `user_id` = {ARG} AND `param` = '{ARG}'", new List<string>([value, userid.ToString(), param]), _ => { }, true);
         }
 
         public static void Close()

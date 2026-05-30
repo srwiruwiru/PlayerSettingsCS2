@@ -24,7 +24,7 @@ namespace PlayerSettings
 
         public string GetValue(string param, string default_value)
         {
-            string value;
+            string? value;
             if(!cached_values.TryGetValue(param, out value) || value == null)
             {              
                 value = default_value;

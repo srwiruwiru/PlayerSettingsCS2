@@ -11,16 +11,16 @@ namespace PlayerSettings
 {
     internal static class Migrate
     {
-        static IAnyBase sqlite, mysql;
+        static IAnyBase? sqlite, mysql;
 
         internal static void Init(IAnyBase mysql)
         {
             Migrate.mysql = mysql;
             sqlite = CAnyBase.Base("sqlite");
-            sqlite.Set(AnyBaseLib.Bases.CommitMode.AutoCommit, Path.Combine(PlayerSettingsCore.plugin.ModuleDirectory, "settings"));
+            sqlite!.Set(AnyBaseLib.Bases.CommitMode.AutoCommit, Path.Combine(PlayerSettingsCore.plugin!.ModuleDirectory, "settings"));
             sqlite.Init();
 
-            mysql.QueryAsync($"SELECT COUNT(*) FROM `{PlayerSettingsCore.plugin.Config.DatabaseParams.Table}users`", [], StartMigrate);
+            mysql!.QueryAsync($"SELECT COUNT(*) FROM `{PlayerSettingsCore.plugin.Config.DatabaseParams.Table}users`", [], StartMigrate);
         }
 
 
@@ -34,7 +34,7 @@ namespace PlayerSettings
 
         private static void MigrateUsers()
         {
-            var res = sqlite.Query($"SELECT `id`,`steam` FROM `{PlayerSettingsCore.plugin.Config.DatabaseParams.Table}users`", []);
+            var res = sqlite!.Query($"SELECT `id`,`steam` FROM `{PlayerSettingsCore.plugin!.Config.DatabaseParams.Table}users`", []);
             if (res.Count == 0)
             {
                 Console.WriteLine("Nothing to migrate [users]");
@@ -55,7 +55,7 @@ namespace PlayerSettings
                     if (count % (res.Count / 10) == 0) PlayerSettingsCore.plugin.Logger.LogInformation($"Migrating... [{Math.Round((float)count / ((float)res.Count) * 100, MidpointRounding.ToPositiveInfinity)}%]");
                 }
 
-                mysql.QueryAsync(sql, args, (_) => PlayerSettingsCore.plugin.Logger.LogInformation("Migrated users!"), true);
+                mysql!.QueryAsync(sql, args, (_) => PlayerSettingsCore.plugin.Logger.LogInformation("Migrated users!"), true);
 
                 MigrateSettings();
             }
@@ -63,7 +63,7 @@ namespace PlayerSettings
 
         private static void MigrateSettings()
         {
-            var res = sqlite.Query($"SELECT `user_id`,`param`,`value` FROM `{PlayerSettingsCore.plugin.Config.DatabaseParams.Table}values`", []);
+            var res = sqlite!.Query($"SELECT `user_id`,`param`,`value` FROM `{PlayerSettingsCore.plugin!.Config.DatabaseParams.Table}values`", []);
             if (res.Count > 0)
             {
                 PlayerSettingsCore.plugin.Logger.LogInformation("Migrating settings...");
@@ -80,7 +80,7 @@ namespace PlayerSettings
                     if(count % (res.Count/10) == 0) PlayerSettingsCore.plugin.Logger.LogInformation($"Migrating... [{Math.Round((float)count / ((float)res.Count) * 100, MidpointRounding.ToPositiveInfinity)}%]");
                 }
 
-                mysql.QueryAsync(sql, args, (_) =>
+                mysql!.QueryAsync(sql, args, (_) =>
                 {
                     PlayerSettingsCore.plugin.Logger.LogInformation("Migrated settings!");
                     Close();
@@ -96,7 +96,7 @@ namespace PlayerSettings
 
         private static void Close()
         {
-            sqlite.Close();
+            sqlite!.Close();
         }
     }
 }

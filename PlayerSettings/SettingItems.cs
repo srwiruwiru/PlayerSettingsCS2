@@ -8,7 +8,7 @@ namespace PlayerSettings
 {
     internal static class SettingItems
     {
-        internal static List<SettingItem> Items;
+        internal static List<SettingItem> Items = new();
 
         internal static void Init()
         {
