@@ -34,8 +34,7 @@ jobs:
 
       - name: Create release asset
         if: github.event_name == 'release'
-        run: |
-          zip -r PlayerSettings-${{ github.event.release.tag_name }}.zip ./PlayerSettings/bin/Release/addons/ ./PlayerSettingsApi/bin/Release/addons/
+        run: zip -r PlayerSettings-${{ github.event.release.tag_name }}.zip ./addons/
 
       - name: Upload release asset
         if: github.event_name == 'release'
